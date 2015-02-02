@@ -12,6 +12,7 @@
 		B7958DE11A7E357F0024DD69 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B7958DE01A7E357F0024DD69 /* Images.xcassets */; };
 		B7958DE41A7E357F0024DD69 /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = B7958DE21A7E357F0024DD69 /* MainMenu.xib */; };
 		B7958DF01A7E357F0024DD69 /* JKeyTests.m in Sources */ = {isa = PBXBuildFile; fileRef = B7958DEF1A7E357F0024DD69 /* JKeyTests.m */; };
+		B7ADF0381A7F523B00CC63BD /* Application.m in Sources */ = {isa = PBXBuildFile; fileRef = B7ADF0371A7F523B00CC63BD /* Application.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -35,6 +36,8 @@
 		B7958DE91A7E357F0024DD69 /* JKeyTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = JKeyTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		B7958DEE1A7E357F0024DD69 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		B7958DEF1A7E357F0024DD69 /* JKeyTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = JKeyTests.m; sourceTree = "<group>"; };
+		B7ADF0361A7F523B00CC63BD /* Application.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Application.h; sourceTree = "<group>"; };
+		B7ADF0371A7F523B00CC63BD /* Application.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Application.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -76,6 +79,8 @@
 		B7958DD81A7E357F0024DD69 /* JKey */ = {
 			isa = PBXGroup;
 			children = (
+				B7ADF0361A7F523B00CC63BD /* Application.h */,
+				B7ADF0371A7F523B00CC63BD /* Application.m */,
 				B7958DDB1A7E357F0024DD69 /* AppDelegate.h */,
 				B7958DDC1A7E357F0024DD69 /* AppDelegate.m */,
 				B7958DE01A7E357F0024DD69 /* Images.xcassets */,
@@ -210,6 +215,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B7ADF0381A7F523B00CC63BD /* Application.m in Sources */,
 				B7958DDF1A7E357F0024DD69 /* main.m in Sources */,
 				B7958DDD1A7E357F0024DD69 /* AppDelegate.m in Sources */,
 			);
@@ -398,6 +404,7 @@
 				B7958DF51A7E357F0024DD69 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		B7958DF61A7E357F0024DD69 /* Build configuration list for PBXNativeTarget "JKeyTests" */ = {
 			isa = XCConfigurationList;
@@ -406,6 +413,7 @@
 				B7958DF81A7E357F0024DD69 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
