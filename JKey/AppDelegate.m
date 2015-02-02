@@ -156,9 +156,10 @@
     if((modifierFlags & NSCommandKeyMask) || (modifierFlags & NSControlKeyMask)) {
         [self onRightClick:button];
     } else {
-        for (int i = 0; i<_keyStroke.length; i++) {
+        NSString *keyStroke = (modifierFlags & NSAlphaShiftKeyMask) ? [_keyStroke uppercaseString] : (modifierFlags & NSShiftKeyMask) ? [_keyStroke capitalizedString] : _keyStroke;
+        for (int i = 0; i<keyStroke.length; i++) {
             CGEventRef keyEvent = CGEventCreateKeyboardEvent(NULL, 0, true);
-            UniChar c = [_keyStroke characterAtIndex:i];
+            UniChar c = [keyStroke characterAtIndex:i];
             CGEventKeyboardSetUnicodeString(keyEvent, 1, &c);
             CGEventPost(kCGSessionEventTap, keyEvent);
             CFRelease(keyEvent);
