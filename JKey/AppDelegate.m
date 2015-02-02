@@ -51,7 +51,7 @@
 }
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
-    _keyStroke = KEYSTROKE;
+    _keyStroke = [self currentKeyStroke];
     _appleScript = [[NSAppleScript alloc] initWithSource:[NSString stringWithFormat:@"tell application \"System Events\" to keystroke \"%@\"", _keyStroke]];
     _statusItem = [[NSStatusBar systemStatusBar] statusItemWithLength:NSVariableStatusItemLength];
     NSString *uppercaseKeyStroke = [_keyStroke uppercaseString];
@@ -73,6 +73,12 @@
     [_menu insertItemWithTitle:@"Quit" action:@selector(onQuit) keyEquivalent:@"" atIndex:1];
 }
 
+- (NSString *)currentKeyStroke {
+    NSUserDefaults *userDefaults = [NSUserDefaults standardUserDefaults];
+    NSString *keyStroke = [userDefaults stringForKey:@"keystroke"];
+    return (keyStroke.length ? keyStroke : KEYSTROKE);
+}
+
 - (void)onChangeKeyStroke {
     NSString *keyStroke = [self input:@"Change keystroke value:" defaultValue:_keyStroke];
     if (keyStroke && ![keyStroke isEqualToString:_keyStroke]) {
@@ -82,6 +88,10 @@
 
 - (void)changeKeyStroke:(NSString *)keyStroke {
     _keyStroke = keyStroke;
+    NSUserDefaults *userDefaults = [NSUserDefaults standardUserDefaults];
+    [userDefaults setValue:_keyStroke forKey:@"keystroke"];
+    [userDefaults synchronize];
+    
     _appleScript = [[NSAppleScript alloc] initWithSource:[NSString stringWithFormat:@"tell application \"System Events\" to keystroke \"%@\"", _keyStroke]];
     NSString *uppercaseKeyStroke = [_keyStroke uppercaseString];
     
