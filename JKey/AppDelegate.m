@@ -23,11 +23,9 @@
     _appleScript = [[NSAppleScript alloc] initWithSource: @"tell application \"System Events\" to keystroke \"j\""];
     
     _statusItem = [[NSStatusBar systemStatusBar] statusItemWithLength:NSVariableStatusItemLength];
-    [_statusItem sendActionOn:NSLeftMouseDownMask];
-    _statusItem.title = @"J";
-    _statusItem.highlightMode = YES;
-    _statusItem.target = self;
-    _statusItem.action = @selector(inputJKey);
+    _statusItem.button.title = @"J";
+    _statusItem.button.target = self;
+    _statusItem.button.action = @selector(inputJKey);
 }
 
 - (void)inputJKey {
