@@ -9,6 +9,8 @@
 #import "AppDelegate.h"
 #import <objc/runtime.h>
 
+#define KEYSTROKE @"j"
+
 @interface NSStatusBarButton (RightClick)
 
 @property SEL rightAction;
@@ -47,25 +49,45 @@
 }
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
-    _appleScript = [[NSAppleScript alloc] initWithSource: @"tell application \"System Events\" to keystroke \"j\""];
+    _appleScript = [[NSAppleScript alloc] initWithSource:[NSString stringWithFormat:@"tell application \"System Events\" to keystroke \"%@\"", KEYSTROKE]];
     
     _statusItem = [[NSStatusBar systemStatusBar] statusItemWithLength:NSVariableStatusItemLength];
-    _statusItem.button.title = @"J";
-    _statusItem.button.target = self;
-    _statusItem.button.action = @selector(onLeftClick);
-    _statusItem.button.rightAction = @selector(onRightClick);
     
-    _menu = [[NSMenu alloc] initWithTitle:@"J"];
+    NSString *uppercaseKeyStroke = [KEYSTROKE uppercaseString];
+    
+    if (floor(NSAppKitVersionNumber) > NSAppKitVersionNumber10_9) {
+        _statusItem.button.title = uppercaseKeyStroke;
+        _statusItem.button.target = self;
+        _statusItem.button.action = @selector(onLeftClick:);
+        _statusItem.button.rightAction = @selector(onRightClick:);
+    } else {
+        _statusItem.title = uppercaseKeyStroke;
+        _statusItem.target = self;
+        _statusItem.action = @selector(onLeftClick:);
+        _statusItem.highlightMode = YES;
+    }
+    
+    _menu = [[NSMenu alloc] initWithTitle:uppercaseKeyStroke];
     [_menu insertItemWithTitle:@"Quit" action:@selector(onQuit) keyEquivalent:@"" atIndex:0];
 }
 
-- (void)onLeftClick {
-    [_appleScript executeAndReturnError:nil];
+- (void)onLeftClick:(NSStatusBarButton *)button {
+    NSEvent *event = [NSApp currentEvent];
+    NSEventModifierFlags modifierFlags = event.modifierFlags;
+    if((modifierFlags & NSCommandKeyMask) || (modifierFlags & NSControlKeyMask)) {
+        [self onRightClick:button];
+    } else {
+        [_appleScript executeAndReturnError:nil];
+    }
 }
 
-- (void)onRightClick {
+- (void)onRightClick:(NSStatusBarButton *)button {
     _statusItem.menu = _menu;
-    [_statusItem.button performClick:self];
+    if (floor(NSAppKitVersionNumber) > NSAppKitVersionNumber10_9) {
+        [_statusItem.button performClick:self];
+    } else {
+        [button performClick:self];
+    }
     _statusItem.menu = nil;
 }
 
