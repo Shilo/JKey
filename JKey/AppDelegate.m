@@ -46,14 +46,15 @@
     NSStatusItem *_statusItem;
     NSAppleScript *_appleScript;
     NSMenu *_menu;
+    NSString *_keyStroke;
+    NSMenuItem *_keyStrokeMenuItem;
 }
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
-    _appleScript = [[NSAppleScript alloc] initWithSource:[NSString stringWithFormat:@"tell application \"System Events\" to keystroke \"%@\"", KEYSTROKE]];
-    
+    _keyStroke = KEYSTROKE;
+    _appleScript = [[NSAppleScript alloc] initWithSource:[NSString stringWithFormat:@"tell application \"System Events\" to keystroke \"%@\"", _keyStroke]];
     _statusItem = [[NSStatusBar systemStatusBar] statusItemWithLength:NSVariableStatusItemLength];
-    
-    NSString *uppercaseKeyStroke = [KEYSTROKE uppercaseString];
+    NSString *uppercaseKeyStroke = [_keyStroke uppercaseString];
     
     if (floor(NSAppKitVersionNumber) > NSAppKitVersionNumber10_9) {
         _statusItem.button.title = uppercaseKeyStroke;
@@ -68,7 +69,51 @@
     }
     
     _menu = [[NSMenu alloc] initWithTitle:uppercaseKeyStroke];
-    [_menu insertItemWithTitle:@"Quit" action:@selector(onQuit) keyEquivalent:@"" atIndex:0];
+    _keyStrokeMenuItem = [_menu insertItemWithTitle:[NSString stringWithFormat:@"Keystroke: %@", _keyStroke] action:@selector(onChangeKeyStroke) keyEquivalent:@"" atIndex:0];
+    [_menu insertItemWithTitle:@"Quit" action:@selector(onQuit) keyEquivalent:@"" atIndex:1];
+}
+
+- (void)onChangeKeyStroke {
+    NSString *keyStroke = [self input:@"Change keystroke value:" defaultValue:_keyStroke];
+    if (keyStroke && ![keyStroke isEqualToString:_keyStroke]) {
+        [self changeKeyStroke:keyStroke];
+    }
+}
+
+- (void)changeKeyStroke:(NSString *)keyStroke {
+    _keyStroke = keyStroke;
+    _appleScript = [[NSAppleScript alloc] initWithSource:[NSString stringWithFormat:@"tell application \"System Events\" to keystroke \"%@\"", _keyStroke]];
+    NSString *uppercaseKeyStroke = [_keyStroke uppercaseString];
+    
+    if (floor(NSAppKitVersionNumber) > NSAppKitVersionNumber10_9) {
+        _statusItem.button.title = uppercaseKeyStroke;
+    } else {
+        _statusItem.title = uppercaseKeyStroke;
+    }
+    
+    _menu.title = uppercaseKeyStroke;
+    _keyStrokeMenuItem.title = [NSString stringWithFormat:@"Keystroke: %@", _keyStroke];
+}
+
+- (NSString *)input: (NSString *)prompt defaultValue: (NSString *)defaultValue {
+    NSAlert *alert = [NSAlert alertWithMessageText: prompt
+                                     defaultButton:@"OK"
+                                   alternateButton:@"Cancel"
+                                       otherButton:nil
+                         informativeTextWithFormat:@""];
+    
+    NSTextField *input = [[NSTextField alloc] initWithFrame:NSMakeRect(0, 0, 200, 24)];
+    [input setStringValue:defaultValue];
+    [alert setAccessoryView:input];
+    NSInteger button = [alert runModal];
+    if (button == NSAlertDefaultReturn) {
+        [input validateEditing];
+        return [input stringValue];
+    } else if (button == NSAlertAlternateReturn) {
+        return nil;
+    } else {
+        return nil;
+    }
 }
 
 - (void)onLeftClick:(NSStatusBarButton *)button {
