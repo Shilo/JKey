@@ -139,6 +139,7 @@
     NSTextField *input = [[NSTextField alloc] initWithFrame:NSMakeRect(0, 0, 200, 24)];
     [input setStringValue:defaultValue];
     [alert setAccessoryView:input];
+    [[NSApplication sharedApplication] activateIgnoringOtherApps:YES];
     NSInteger button = [alert runModal];
     if (button == NSAlertDefaultReturn) {
         [input validateEditing];
