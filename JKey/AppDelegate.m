@@ -44,7 +44,6 @@
 
 @implementation AppDelegate {
     NSStatusItem *_statusItem;
-    NSAppleScript *_appleScript;
     NSMenu *_menu;
     NSString *_keyStroke;
     NSMenuItem *_keyStrokeMenuItem;
@@ -52,7 +51,6 @@
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
     _keyStroke = [self currentKeyStroke];
-    _appleScript = [[NSAppleScript alloc] initWithSource:[NSString stringWithFormat:@"tell application \"System Events\" to keystroke \"%@\"", _keyStroke]];
     _statusItem = [[NSStatusBar systemStatusBar] statusItemWithLength:NSVariableStatusItemLength];
     NSString *uppercaseKeyStroke = [_keyStroke uppercaseString];
     
@@ -71,6 +69,33 @@
     _menu = [[NSMenu alloc] initWithTitle:uppercaseKeyStroke];
     _keyStrokeMenuItem = [_menu insertItemWithTitle:[NSString stringWithFormat:@"Keystroke: %@", _keyStroke] action:@selector(onChangeKeyStroke) keyEquivalent:@"" atIndex:0];
     [_menu insertItemWithTitle:@"Quit" action:@selector(onQuit) keyEquivalent:@"" atIndex:1];
+}
+
+- (void)writeString:(NSString *)valueToSet withFlags:(int)flags intoProcess:(ProcessSerialNumberPtr) process
+{
+    
+    CGEventSourceRef source = CGEventSourceCreate(kCGEventSourceStatePrivate);
+    CGEventRef keyEventDown = CGEventCreateKeyboardEvent(source, 1, true);
+    CGEventRef keyEventUp = CGEventCreateKeyboardEvent(source, 1, false);
+    CGEventSetFlags(keyEventDown,0);
+    CGEventSetFlags(keyEventUp,0);
+    UniChar buffer;
+    CFRelease(source);
+    for (int i = 0; i < [valueToSet length]; i++) {
+        buffer = [valueToSet characterAtIndex:i];
+        CGEventKeyboardSetUnicodeString(keyEventDown, 1, &buffer);
+        CGEventKeyboardSetUnicodeString(keyEventUp, 1, &buffer);
+        
+        CGEventSetFlags(keyEventDown,flags);
+        CGEventPostToPSN(process, keyEventDown);
+        [NSThread sleepForTimeInterval: 0.01];
+        CGEventSetFlags(keyEventUp,flags);
+        CGEventPostToPSN(process, keyEventUp);
+        [NSThread sleepForTimeInterval: 0.01];
+        
+    }
+    CFRelease(keyEventUp);
+    CFRelease(keyEventDown);
 }
 
 - (NSString *)currentKeyStroke {
@@ -92,7 +117,6 @@
     [userDefaults setValue:_keyStroke forKey:@"keystroke"];
     [userDefaults synchronize];
     
-    _appleScript = [[NSAppleScript alloc] initWithSource:[NSString stringWithFormat:@"tell application \"System Events\" to keystroke \"%@\"", _keyStroke]];
     NSString *uppercaseKeyStroke = [_keyStroke uppercaseString];
     
     if (floor(NSAppKitVersionNumber) > NSAppKitVersionNumber10_9) {
@@ -132,7 +156,13 @@
     if((modifierFlags & NSCommandKeyMask) || (modifierFlags & NSControlKeyMask)) {
         [self onRightClick:button];
     } else {
-        [_appleScript executeAndReturnError:nil];
+        for (int i = 0; i<_keyStroke.length; i++) {
+            CGEventRef keyEvent = CGEventCreateKeyboardEvent(NULL, 0, true);
+            UniChar c = [_keyStroke characterAtIndex:i];
+            CGEventKeyboardSetUnicodeString(keyEvent, 1, &c);
+            CGEventPost(kCGSessionEventTap, keyEvent);
+            CFRelease(keyEvent);
+        }
     }
 }
 
