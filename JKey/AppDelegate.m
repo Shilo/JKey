@@ -43,6 +43,7 @@
 @implementation AppDelegate {
     NSStatusItem *_statusItem;
     NSAppleScript *_appleScript;
+    NSMenu *_menu;
 }
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
@@ -53,6 +54,9 @@
     _statusItem.button.target = self;
     _statusItem.button.action = @selector(onLeftClick);
     _statusItem.button.rightAction = @selector(onRightClick);
+    
+    _menu = [[NSMenu alloc] initWithTitle:@"J"];
+    [_menu insertItemWithTitle:@"Quit" action:@selector(onQuit) keyEquivalent:@"" atIndex:0];
 }
 
 - (void)onLeftClick {
@@ -60,7 +64,13 @@
 }
 
 - (void)onRightClick {
-    NSLog(@"right click");
+    _statusItem.menu = _menu;
+    [_statusItem.button performClick:self];
+    _statusItem.menu = nil;
+}
+
+- (void)onQuit {
+    [NSApp performSelector:@selector(terminate:) withObject:nil afterDelay:0];
 }
 
 @end
