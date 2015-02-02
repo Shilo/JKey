@@ -8,6 +8,7 @@
 
 #import "AppDelegate.h"
 #import <objc/runtime.h>
+#include <Carbon/Carbon.h>
 
 #define KEYSTROKE @"j"
 
@@ -47,6 +48,7 @@
     NSMenu *_menu;
     NSString *_keyStroke;
     NSMenuItem *_keyStrokeMenuItem;
+    NSAlert *_alert;
 }
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
@@ -69,33 +71,6 @@
     _menu = [[NSMenu alloc] initWithTitle:uppercaseKeyStroke];
     _keyStrokeMenuItem = [_menu insertItemWithTitle:[NSString stringWithFormat:@"Keystroke: %@", _keyStroke] action:@selector(onChangeKeyStroke) keyEquivalent:@"" atIndex:0];
     [_menu insertItemWithTitle:@"Quit" action:@selector(onQuit) keyEquivalent:@"" atIndex:1];
-}
-
-- (void)writeString:(NSString *)valueToSet withFlags:(int)flags intoProcess:(ProcessSerialNumberPtr) process
-{
-    
-    CGEventSourceRef source = CGEventSourceCreate(kCGEventSourceStatePrivate);
-    CGEventRef keyEventDown = CGEventCreateKeyboardEvent(source, 1, true);
-    CGEventRef keyEventUp = CGEventCreateKeyboardEvent(source, 1, false);
-    CGEventSetFlags(keyEventDown,0);
-    CGEventSetFlags(keyEventUp,0);
-    UniChar buffer;
-    CFRelease(source);
-    for (int i = 0; i < [valueToSet length]; i++) {
-        buffer = [valueToSet characterAtIndex:i];
-        CGEventKeyboardSetUnicodeString(keyEventDown, 1, &buffer);
-        CGEventKeyboardSetUnicodeString(keyEventUp, 1, &buffer);
-        
-        CGEventSetFlags(keyEventDown,flags);
-        CGEventPostToPSN(process, keyEventDown);
-        [NSThread sleepForTimeInterval: 0.01];
-        CGEventSetFlags(keyEventUp,flags);
-        CGEventPostToPSN(process, keyEventUp);
-        [NSThread sleepForTimeInterval: 0.01];
-        
-    }
-    CFRelease(keyEventUp);
-    CFRelease(keyEventDown);
 }
 
 - (NSString *)currentKeyStroke {
@@ -129,24 +104,58 @@
     _keyStrokeMenuItem.title = [NSString stringWithFormat:@"Keystroke: %@", _keyStroke];
 }
 
+- (void)showKeyboard
+{
+    [self toggleKeyboard:YES];
+    [[_alert accessoryView] becomeFirstResponder];
+}
+
+- (void)toggleKeyboard:(BOOL)show
+{
+    NSDictionary *property = [NSDictionary dictionaryWithObject:(NSString*)kTISTypeKeyboardViewer
+                                                         forKey:(NSString*)kTISPropertyInputSourceType];
+    NSArray *sources = (__bridge NSArray*)TISCreateInputSourceList((__bridge CFDictionaryRef)property, false);
+    
+    TISInputSourceRef keyboardViewer = (__bridge TISInputSourceRef)[sources objectAtIndex:0];
+    if (show == YES)
+    {
+        TISSelectInputSource(keyboardViewer);
+    }
+    else
+    {
+        TISDeselectInputSource(keyboardViewer);
+    }
+    
+    CFRelease((CFTypeRef)sources);
+    
+}
+
 - (NSString *)input: (NSString *)prompt defaultValue: (NSString *)defaultValue {
     NSAlert *alert = [NSAlert alertWithMessageText: prompt
                                      defaultButton:@"OK"
-                                   alternateButton:@"Cancel"
-                                       otherButton:nil
+                                   alternateButton:@"\u2328 Keyboard"
+                                       otherButton:@"Cancel"
                          informativeTextWithFormat:@""];
+    _alert = alert;
+    
+    NSButton *keyboardButton = [[alert buttons] objectAtIndex:2];
+    [keyboardButton setTarget:self];
+    [keyboardButton setAction:@selector(showKeyboard)];
     
     NSTextField *input = [[NSTextField alloc] initWithFrame:NSMakeRect(0, 0, 200, 24)];
     [input setStringValue:defaultValue];
     [alert setAccessoryView:input];
     [[NSApplication sharedApplication] activateIgnoringOtherApps:YES];
+    [[alert window] setInitialFirstResponder:input];
     NSInteger button = [alert runModal];
     if (button == NSAlertDefaultReturn) {
         [input validateEditing];
+        [self toggleKeyboard:NO];
+        _alert = nil;
         return [input stringValue];
-    } else if (button == NSAlertAlternateReturn) {
-        return nil;
     } else {
+        [self toggleKeyboard:NO];
+        _alert = nil;
         return nil;
     }
 }
